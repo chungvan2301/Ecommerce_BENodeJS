@@ -11,17 +11,15 @@ const crypto = require('crypto')
 //tạo user
 const creatUser = asyncHandler( async (req,res) =>{
     const email = req.body.email;
-    const findUser =  await User.findOne({email:email});    //nếu k await, lệnh tiếp theo sẽ thực hiện trong khi chưa findOne -> finduser trả về kết quả là 1 promise chứ k phải obj
+    const findUser =  await User.findOne({email:email});
     
     if(!findUser){
-        //tạo user
         const newUser = await User.create(req.body)
         res.json(newUser)
         
         
     }
     else {
-        //User đã tồn tại
         throw new Error ('User already exist')           
     }
 })
@@ -29,22 +27,21 @@ const creatUser = asyncHandler( async (req,res) =>{
 //Login user
 const loginUserControler = asyncHandler(async(req,res)=>{
     const {email, password} = req.body;
-    //Check email and password
     const userEmail = await User.findOne({email:email});
     if(!userEmail){
         res.json('Invalid email, Please register')
     }
     else {
         if( await userEmail.isPasswordMatched(password)){
-            const refreshToken = await generateRefreshToken(userEmail?._id);           //tạo 1 refreshToken từ _id khi login
+            const refreshToken = await generateRefreshToken(userEmail?._id); 
             const updateRefreshToken = await User.findByIdAndUpdate(userEmail?._id,{
                 refreshToken: refreshToken
             },{
                 new: true
             });
-            res.cookie('refreshToken', refreshToken, {                    //thiết lập cookie
+            res.cookie('refreshToken', refreshToken, {                    
                 httpOnly: true,
-                maxAge: 72*3600*1000                                                   // thời gian tồn tại (tính bằng mili giây)
+                maxAge: 72*3600*1000                                                  
             })
 
             res.json({
@@ -53,7 +50,7 @@ const loginUserControler = asyncHandler(async(req,res)=>{
                 lastname: userEmail?.lastname,
                 email: userEmail?.email,
                 mobile: userEmail?.mobile,
-                token: generateToken(userEmail?._id),     //tạo 1 token từ _id
+                token: generateToken(userEmail?._id), 
             })
         }
         else {
@@ -74,7 +71,7 @@ const allUser = asyncHandler(async(req,res)=>{
 
 //Get a single user
 const singleUser = asyncHandler(async(req,res)=>{
-    const {id} = req.params;   //lấy id từ params
+    const {id} = req.params; 
     validateIDMongo(id);
     try {
         const oneUser = await User.findById(id)
@@ -86,7 +83,7 @@ const singleUser = asyncHandler(async(req,res)=>{
 
 //Delete a user
 const singleUserDel = asyncHandler(async(req,res)=>{
-    const {id} = req.params;   //lấy id từ params
+    const {id} = req.params; 
     validateIDMongo(id);
     try {
         const oneUser = await User.findByIdAndDelete(id)
@@ -96,10 +93,10 @@ const singleUserDel = asyncHandler(async(req,res)=>{
     }
 })
 
-// handle refresh token: dùng để lấy lại access token khi nó hết hạn
+
 const handlerRefreshToken = asyncHandler(async(req,res)=>{
     const cookie = req.cookies;
-    if(!cookie.refreshToken) throw new Error ('No refresh token in cookies');     //kiểm tra xem có refreshtoken trong cookie không
+    if(!cookie.refreshToken) throw new Error ('No refresh token in cookies'); 
     const refreshToken = cookie.refreshToken;
     const user = await User.findOne({refreshToken});
     if(!user) throw new Error ('No refresh token in database or not matched')
@@ -113,17 +110,17 @@ const handlerRefreshToken = asyncHandler(async(req,res)=>{
 //logout
 const logout = asyncHandler(async(req,res)=>{
     const cookie = req.cookies;
-    if(!cookie.refreshToken) throw new Error ('No refresh token in cookies');     //kiểm tra xem có refreshtoken trong cookie không
+    if(!cookie.refreshToken) throw new Error ('No refresh token in cookies'); 
     const refreshToken = cookie.refreshToken;
     const user = await User.findOne({refreshToken});
-    if(!user) {                             //nếu không tìm được user, xóa cookie
+    if(!user) {                           
         res.clearCookie('refreshToken',{
             httpOnly: true,
             secure: true
         });
-        return res.sendStatus(204)              //No content matched with cookie
+        return res.sendStatus(204)             
     }
-    //Nếu có user, update refreshToken = '', sau đó xóa cookie
+   
     await User.findOneAndUpdate({refreshToken: refreshToken}, {
         refreshToken:''
     });
@@ -242,7 +239,7 @@ const resetPassword = asyncHandler(async(req,res)=>{
     .update(token)
     .digest('hex')
     const user = User.findOne({
-        passWordResetExpires: {$gt: Date.now()},   //từ ngày hiện tại trở đi 
+        passWordResetExpires: {$gt: Date.now()},  
         passWordResetToken: hashToken
     });
     if (!user) throw new Error ('Token expire')
