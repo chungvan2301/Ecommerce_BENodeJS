@@ -10,7 +10,7 @@ const slugify = require('slugify')
 //Create a product
 const createProduct = asyncHandler(async(req,res)=>{
     if(req.body.title){
-        req.body.slug=slugify(req.body.title)               //tạo slug từ title
+        req.body.slug=slugify(req.body.title)               
     }
     try {
         const newProduct = await Product.create(req.body)
@@ -35,17 +35,17 @@ const getProduct = asyncHandler(async(req,res)=>{
 const getAllProducts = asyncHandler(async(req,res)=>{
     try {
         //FILTERING
-        const queryObj = {...req.query}                                                         //tạo 1 bản sao của req.query, khi thao tác trên queryObj, req.query không bị thay đổi
+        const queryObj = {...req.query}                                                         
         const excludeFields = ['page','sort','limit','fields'];
         excludeFields.forEach((el)=> delete queryObj[el])
-        let queryString = JSON.stringify(queryObj);                                             //chuyển truy vấn thành chuỗi json
-        queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, (match)=> `$${match}`);       //replace các query gte, gt... thành toán tử so sánh $gte,... trong mongoDB
-        let query = Product.find(JSON.parse(queryString));                              //dùng let đổi thay đổi query nếu có thể
+        let queryString = JSON.stringify(queryObj);                                             
+        queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, (match)=> `$${match}`);       
+        let query = Product.find(JSON.parse(queryString));                             
        
         
         //SORT
         if(req.query.sort){
-            const sortBy = req.query.sort.split(',').join(' ')                          //tách dấu , ở truy vấn thành khoảng trắng để dùng sort nhiều trường
+            const sortBy = req.query.sort.split(',').join(' ')                          
             query = query.sort(sortBy)
         }
         else{
@@ -66,7 +66,7 @@ const getAllProducts = asyncHandler(async(req,res)=>{
         const skip = (page-1)*limit;
         query = query.skip(skip).limit(limit);
         if(req.query.page){
-            const productCount = await Product.countDocuments();                //tổng số sản phẩm
+            const productCount = await Product.countDocuments();               
             if(skip>=productCount) {res.json('Page not exist')};
 
         }
@@ -82,7 +82,7 @@ const getAllProducts = asyncHandler(async(req,res)=>{
 const updateProduct = asyncHandler(async(req,res)=>{
     try {
         if(req.body.title){
-            req.body.slug=slugify(req.body.title)               //tạo slug từ title
+            req.body.slug=slugify(req.body.title)               
         };
         const {id} = req.params;
         const newupdateProduct = await Product.findByIdAndUpdate(id, req.body,{new: true})
