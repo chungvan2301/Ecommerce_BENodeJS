@@ -1,6 +1,6 @@
-const mongoose = require('mongoose'); // Erase if already required
+const mongoose = require('mongoose');
 const bcrypt = require('bcrypt')
-var ObjectId = mongoose.Schema.ObjectId; //Định nghĩa type ObjectId do trong Schema k có
+var ObjectId = mongoose.Schema.ObjectId;
 const crypto = require('crypto')
 
 
@@ -31,7 +31,7 @@ var userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    role:{                                      //phân quyền user, admin
+    role:{                                    
         type: String,
         default: 'user'
     },
@@ -55,35 +55,28 @@ var userSchema = new mongoose.Schema({
     passWordResetExpires: Date
 },
 {
-    timestamps: true,   //save time document create
+    timestamps: true,  
 });
 
-userSchema.pre('save', async function(next){ //pre: đăng ký 1 middleware function trước khi document được lưu vào database
-    const salt = await bcrypt.genSaltSync(10); //chuỗi salt ngẫu nhiên để mã hóa mật khẩu, 10 lần lặp lại salt
-    this.password = await bcrypt.hash(this.password,salt) //hash password bằng salt
+userSchema.pre('save', async function(next){
+    const salt = await bcrypt.genSaltSync(10); 
+    this.password = await bcrypt.hash(this.password,salt)
 })
 
-userSchema.methods.isPasswordMatched = async function(enteredPassword){  //định nghĩa 1 phương thức isPasswordMatched để so sánh enterPassword và password đã lưu, nếu đúng trả về true
+userSchema.methods.isPasswordMatched = async function(enteredPassword){ 
     return await bcrypt.compare(enteredPassword,this.password)
 }
 
-userSchema.methods.createResetPassWorkToken = async function(enteredPassword){   //định nghĩa phương thức createResetPassWorkToken: tạo một token đặc biệt để đặt lại mật khẩu cho người dùng. Khi người dùng yêu cầu đặt lại mật khẩu, hệ thống sẽ tạo một token mới và lưu trữ nó trong cơ sở dữ liệu.
+userSchema.methods.createResetPassWorkToken = async function(enteredPassword){ 
     const resetToken = crypto.randomBytes(32).toString('hex');  
     this.passWordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex')
-    this.passWordResetExpires = Date.now()+5*60*1000;    //tồn tại trong 5 phút
+    this.passWordResetExpires = Date.now()+5*60*1000;
     return resetToken;
 }
 
 
-
-
-
-
-
-
-//Export the model
 module.exports = mongoose.model('User', userSchema);
 
