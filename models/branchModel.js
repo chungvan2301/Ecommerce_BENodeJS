@@ -1,14 +1,23 @@
-const mongoose = require('mongoose'); // Erase if already required
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
 
-// Declare the Schema of the Mongo model
-var branchSchema = new mongoose.Schema({
-    title:{
-        type:String,
-        required:true,
-        unique:true,
-        index:true,
+const brandSchema = new Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true
     },
-},{timestamps:true});
+    slug: {
+      type: String,
+      required: true,
+      lowercase: true,
+      unique: true,
+      index: true
+    }
+  },
+  { timestamps: true }
+);
 
-//Export the model
-module.exports = mongoose.model('Branch', branchSchema);
+module.exports = mongoose.model('Brand', brandSchema);

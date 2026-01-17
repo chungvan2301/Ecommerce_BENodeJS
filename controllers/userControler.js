@@ -8,7 +8,6 @@ const jwt = require('jsonwebtoken');
 const sendEmail = require('./emailControler');
 const crypto = require('crypto')
 
-//tạo user
 const creatUser = asyncHandler( async (req,res) =>{
     const email = req.body.email;
     const findUser =  await User.findOne({email:email});
@@ -24,7 +23,6 @@ const creatUser = asyncHandler( async (req,res) =>{
     }
 })
 
-//Login user
 const loginUserControler = asyncHandler(async(req,res)=>{
     const {email, password} = req.body;
     const userEmail = await User.findOne({email:email});
@@ -59,7 +57,6 @@ const loginUserControler = asyncHandler(async(req,res)=>{
     }
 })
 
-//Get all users
 const allUser = asyncHandler(async(req,res)=>{
     try {
         const getAllUser = await User.find({});
@@ -69,7 +66,6 @@ const allUser = asyncHandler(async(req,res)=>{
     }
 })
 
-//Get a single user
 const singleUser = asyncHandler(async(req,res)=>{
     const {id} = req.params; 
     validateIDMongo(id);
@@ -81,7 +77,6 @@ const singleUser = asyncHandler(async(req,res)=>{
     }
 })
 
-//Delete a user
 const singleUserDel = asyncHandler(async(req,res)=>{
     const {id} = req.params; 
     validateIDMongo(id);
@@ -107,7 +102,6 @@ const handlerRefreshToken = asyncHandler(async(req,res)=>{
     });
 })
 
-//logout
 const logout = asyncHandler(async(req,res)=>{
     const cookie = req.cookies;
     if(!cookie.refreshToken) throw new Error ('No refresh token in cookies'); 
@@ -132,10 +126,6 @@ const logout = asyncHandler(async(req,res)=>{
 
 })
 
-
-
-
-//Update a user
 const singleUserUpdate = asyncHandler(async(req,res)=>{
     const {id} = req.user;   
     validateIDMongo(id);
@@ -156,7 +146,6 @@ const singleUserUpdate = asyncHandler(async(req,res)=>{
     }
 })
 
-//Block - Unblock user
 const Unblock = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id);
@@ -173,6 +162,7 @@ const Unblock = asyncHandler(async(req,res)=>{
         throw new Error('')
     }
 })
+
 const Block = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id)
@@ -190,7 +180,6 @@ const Block = asyncHandler(async(req,res)=>{
     }
 })
 
-//Update password
 const updatePassword = asyncHandler(async(req,res)=>{
     const {id} = req.user;
     const {password} = req.body;
@@ -206,7 +195,6 @@ const updatePassword = asyncHandler(async(req,res)=>{
     }
 })
 
-//Forgot password -> sendemail to create token
 const forgotPassword = asyncHandler(async(req,res)=>{
     const {email} = req.body;
     console.log(email)
@@ -230,7 +218,6 @@ const forgotPassword = asyncHandler(async(req,res)=>{
 
 })
 
-//reset password
 const resetPassword = asyncHandler(async(req,res)=>{
     const {password} = req.body
     const {token} = req.params
@@ -250,6 +237,5 @@ const resetPassword = asyncHandler(async(req,res)=>{
     res.json(user);
 
 })
-
 
 module.exports = {creatUser, loginUserControler, allUser, singleUser, singleUserDel, singleUserUpdate, Unblock, Block, handlerRefreshToken, logout, updatePassword, forgotPassword, resetPassword};

@@ -2,8 +2,6 @@ const BlogCategory = require('../models/blogCatModel');
 const asyncHandler = require('express-async-handler');
 const validateIDMongo = require('../validatedIDmongoDB/validatedID');
 
-
-//Create BlogCategory
 const createBlogCategory = asyncHandler(async(req,res)=>{
     try {
         const newBlogCategory = await BlogCategory.create(req.body)
@@ -13,7 +11,6 @@ const createBlogCategory = asyncHandler(async(req,res)=>{
     }
 })
 
-//Update BlogCategory
 const updateBlogCategory = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id);
@@ -25,7 +22,6 @@ const updateBlogCategory = asyncHandler(async(req,res)=>{
     }
 })
 
-//Delete BlogCategory
 const deleteBlogCategory = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id);
@@ -37,7 +33,6 @@ const deleteBlogCategory = asyncHandler(async(req,res)=>{
     }
 })
 
-//Get all BlogCategory
 const getAllBlogCategory = asyncHandler(async(req,res)=>{
     try {
         const allBlogCategory = await BlogCategory.find()
@@ -47,7 +42,6 @@ const getAllBlogCategory = asyncHandler(async(req,res)=>{
     }
 })
 
-//Get a BlogCategory
 const getBlogCategory = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id);
@@ -58,7 +52,5 @@ const getBlogCategory = asyncHandler(async(req,res)=>{
         throw new Error ('Error')
     }
 })
-
-
 
 module.exports = {createBlogCategory, updateBlogCategory, deleteBlogCategory, getAllBlogCategory, getBlogCategory}

@@ -4,8 +4,7 @@ const notFound = (req,res,next)=>{
     next(error);
 };
 
-//errorHandler
-const errorHandler = (err,req,res,next)=>{
+const errorHandler = (err,req,res,next) => {
     const statuscode = res.statusCode == 200 ? 500:res.statusCode
     res.status(statuscode)
     res.json({
@@ -13,6 +12,5 @@ const errorHandler = (err,req,res,next)=>{
         stack: err?.stack
     });
 };
-
 
 module.exports = {notFound, errorHandler}

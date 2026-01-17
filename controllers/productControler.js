@@ -1,195 +1,51 @@
-const Product = require('../models/productModel');
 const asyncHandler = require('express-async-handler');
-const User = require('../models/userModel');
+const productService = require('../services/productService');
+const {
+    CreateProductDTO,
+    ProductResponseDTO
+} = require('../dtos/product.dto');
 
-const uploadingCloudinary = require('../validatedIDmongoDB/cloudinary');
+const {
+    successResponse
+} = require('../utils/helpers/responseHelpers');
 
-//Slugify
-const slugify = require('slugify')
-
-//Create a product
-const createProduct = asyncHandler(async(req,res)=>{
-    if(req.body.title){
-        req.body.slug=slugify(req.body.title)               
-    }
-    try {
-        const newProduct = await Product.create(req.body)
-        res.json(newProduct)
-    } catch (error) {
-        throw new Error ('Error')
-    }
+const createProduct = asyncHandler(async (req, res) => {
+    const dto = new CreateProductDTO(req.body);
+    const product = await productService.createProduct(dto);
+    return successResponse(
+        res,
+        new ProductResponseDTO(product),
+        201
+    );
 });
 
-//Get a product
-const getProduct = asyncHandler(async(req,res)=>{
-    const {id} = req.params;
-    try {
-        const viewProduct = await Product.findById(id)
-        res.json(viewProduct)     
-    } catch (error) {
-        throw new Error ('Error')
-    }
-})
+const getProduct = asyncHandler(async (req, res) => {
+    const product = await productService.getProductById(req.params.id);
+    return successResponse(
+        res,
+        new ProductResponseDTO(product)
+    );
+});
 
-//Get all product with FILTERING
-const getAllProducts = asyncHandler(async(req,res)=>{
-    try {
-        //FILTERING
-        const queryObj = {...req.query}                                                         
-        const excludeFields = ['page','sort','limit','fields'];
-        excludeFields.forEach((el)=> delete queryObj[el])
-        let queryString = JSON.stringify(queryObj);                                             
-        queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, (match)=> `$${match}`);       
-        let query = Product.find(JSON.parse(queryString));                             
-       
-        
-        //SORT
-        if(req.query.sort){
-            const sortBy = req.query.sort.split(',').join(' ')                          
-            query = query.sort(sortBy)
-        }
-        else{
-            query = query.sort('-createdAt')                                        
-        }
+const getAllProducts = asyncHandler(async (req, res) => {
+    const products = await productService.getAllProducts(req.query);
+    const result = products.map(p => new ProductResponseDTO(p));
+    return successResponse(res, result);
+});
 
-        //LIMIT THE FIELDS
-        if(req.query.fields){
-             const fields = req.query.fields.split(',').join(' ')
-             query = query.select(fields)
-        } else {
-            query = query.select('-__v')
-        }
+const getPublicProducts = async ({ limit = 9, cursor }) => {
+  const query = cursor
+    ? { createdAt: { $lt: cursor } }
+    : {};
 
-        //pagination
-        const page = req.query.page;
-        const limit = req.query.limit;
-        const skip = (page-1)*limit;
-        query = query.skip(skip).limit(limit);
-        if(req.query.page){
-            const productCount = await Product.countDocuments();               
-            if(skip>=productCount) {res.json('Page not exist')};
+  return Product.find(query)
+    .sort({ createdAt: -1 })
+    .limit(Number(limit));
+};
 
-        }
-
-        const viewProdcut = await query;
-        res.json(viewProdcut)     
-    } catch (error) {
-        throw new Error ('Error')
-    }
-})
-
-//Update a product
-const updateProduct = asyncHandler(async(req,res)=>{
-    try {
-        if(req.body.title){
-            req.body.slug=slugify(req.body.title)               
-        };
-        const {id} = req.params;
-        const newupdateProduct = await Product.findByIdAndUpdate(id, req.body,{new: true})
-        res.json(newupdateProduct)
-    } catch (error) {
-        throw new Error ('Error')
-    }
-})
-
-//Delete a product
-const deleteProduct = asyncHandler(async(req,res)=>{
-    try {
-        const {id} = req.params;
-        const newupdateProduct = await Product.findByIdAndDelete(id)
-        res.json('Product already deleted')
-    } catch (error) {
-        throw new Error ('Error')
-    }
-})
-
-//User want to add product into bag
-const addProdcutToBag = asyncHandler(async(req,res)=>{
-    const {id} = req.user;
-    const {productId} = req.body;
-    try {
-        const user = await User.findById(id);
-        let alreadyAdd = user.wishlist.find((id)=>id.toString()===productId);
-        console.log(alreadyAdd)
-        if (alreadyAdd) {
-            let user = await User.findByIdAndUpdate(id,{
-                $pull: {wishlist: productId}
-            }, {new: true})
-            res.json(user)
-        }
-        else {let user = await User.findByIdAndUpdate(id,{
-            $push: {wishlist: productId}
-        }, {new: true})
-        res.json(user)}
-    } catch (error) {
-        throw new Error ('Error')
-    }
-})
-
-//Rate a product
-const Rating = asyncHandler(async(req,res)=>{
-    const {id} = req.user;
-    const {productId, star, comment} = req.body;
-    try {
-        const product = await Product.findById(productId);
-        const alreadyRating = product.rating.find((user)=>user.postedby.toString() === id);
-        if(alreadyRating){
-            const productRating = await Product.updateOne(
-            {
-                rating: {$elemMatch: alreadyRating}
-            },
-            {
-                $set: {'rating.$.star':star, 'rating.$.comment':comment,}
-            }, {new:true});
-        } else {
-            const productRating = await Product.findByIdAndUpdate(productId,{
-                $push: {
-                    rating: {
-                        star: star,
-                        comment: comment,
-                        postedby: id
-                    }
-                }
-            }, {new:true})
-        }
-        const ratingProduct = await Product.findById(productId);
-        //Đếm tổng số rating
-        const totalUsersRating = ratingProduct.rating.length;
-        //Tính tổng số sao
-        let totalStars = ratingProduct.rating.reduce((total, currentvalue)=> total + currentvalue.star, 0);
-        let productRating = (totalStars/totalUsersRating).toFixed(1);
-        const resultProduct = await Product.findByIdAndUpdate(productId,{
-            totalratings: productRating
-        },{new:true})
-        res.json(resultProduct)
-    } catch (error) {
-        throw new Error ('Error')
-    }
-})
-
-//upload image
-const uploadImages = asyncHandler(async(req,res)=>{
-    const {id} = req.params;
-    try {
-        const uploader = (path) => uploadingCloudinary(path,'images');
-        const url = [];
-        const files = req.files;
-        for (let file of files){
-            const path = file;
-            const newpath = await uploader(path);
-            console.log(newpath)
-            url.push(newpath);
-        }
-        const findProduct = await Product.findByIdAndUpdate(id,{
-            image: url.map((file)=>{
-                return file;
-            }),
-        }, {new:true});
-        res.json(findProduct);
-    } catch (error) {
-        throw new Error ('Error')
-    }
-})
-
-
-module.exports = {createProduct, getProduct, getAllProducts, updateProduct, deleteProduct, addProdcutToBag, Rating, uploadImages}
+module.exports = {
+    createProduct,
+    getProduct,
+    getAllProducts,
+    getPublicProducts
+};

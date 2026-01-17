@@ -3,9 +3,6 @@ const Blog = require('../models/blogModel')
 const asyncHandler = require('express-async-handler');
 const validateIDMongo = require('../validatedIDmongoDB/validatedID');
 
-
-
-//Create blog
 const createBlog = asyncHandler(async(req,res)=>{
     try {
         const newBlog = await Blog.create(req.body)
@@ -15,7 +12,6 @@ const createBlog = asyncHandler(async(req,res)=>{
     }
 })
 
-//Update blog
 const updateBlog = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id);
@@ -28,7 +24,6 @@ const updateBlog = asyncHandler(async(req,res)=>{
     }   
 })
 
-//Delete blog
 const deleteBlog = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id);
@@ -40,7 +35,6 @@ const deleteBlog = asyncHandler(async(req,res)=>{
     }
 })
 
-//Get a Blog
 const getBlog = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id);
@@ -56,7 +50,6 @@ const getBlog = asyncHandler(async(req,res)=>{
     }
 })
 
-//Get all Blog
 const getAllBlog = asyncHandler(async(req,res)=>{
     try {
         const allBlog = await Blog.find();
@@ -66,14 +59,13 @@ const getAllBlog = asyncHandler(async(req,res)=>{
     }
 })
 
-//Like blog
 const likeBLog = asyncHandler(async(req,res)=>{
     const {blogId} = req.body;
     validateIDMongo(blogId);
-    const blog = await Blog.findById(blogId);              //tìm blogId
-    const loginUserId = req?.user?._id;                        //Tìm login use
-    const isLike = blog?.isLiked;                            //Check xem đã like blog chưa
-    const alreadyDislike = blog?.dislikes?.find((userId) => userId?.toString() === loginUserId?.toString())  //tìm xem trong trường dislike, loginuser này có trong đó không
+    const blog = await Blog.findById(blogId);             
+    const loginUserId = req?.user?._id;                        
+    const isLike = blog?.isLiked;                           
+    const alreadyDislike = blog?.dislikes?.find((userId) => userId?.toString() === loginUserId?.toString()) 
     if(alreadyDislike) {
         const blog = await Blog.findByIdAndUpdate(blogId, {
             isDisliked: false,
@@ -97,15 +89,14 @@ const likeBLog = asyncHandler(async(req,res)=>{
 
 })
 
-//disLike blog
 const dislikeBLog = asyncHandler(async(req,res)=>{
     const {blogId} = req.body;
     validateIDMongo(blogId);
-    const blog = await Blog.findById(blogId);              //tìm blogId
-    const loginUserId = req?.user?._id;                        //Tìm login use
+    const blog = await Blog.findById(blogId);              
+    const loginUserId = req?.user?._id;                        
     console.log(loginUserId)
-    const isDislike = blog?.isDisliked;                            //Check xem đã like blog chưa
-    const alreadyLike = blog?.likes?.find((userId) => userId?.toString() === loginUserId?.toString())  //tìm xem trong trường dislike, loginuser này có trong đó không
+    const isDislike = blog?.isDisliked;                            
+    const alreadyLike = blog?.likes?.find((userId) => userId?.toString() === loginUserId?.toString())
     if(alreadyLike) {
         const blog = await Blog.findByIdAndUpdate(blogId, {
             isLiked: false,
@@ -128,8 +119,5 @@ const dislikeBLog = asyncHandler(async(req,res)=>{
     }
 
 })
-
-
-
 
 module.exports = {createBlog, updateBlog, deleteBlog, getBlog, getAllBlog, likeBLog, dislikeBLog}

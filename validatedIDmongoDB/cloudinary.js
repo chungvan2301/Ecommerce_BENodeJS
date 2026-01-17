@@ -6,7 +6,6 @@ cloudinary.config({
     api_secret: process.env.API_SECRET 
 });
 
-//Tạo 1 hàm để upload image
 const uploadingCloudinary = async (file) => {
     return new  Promise ((resolve)=> {
         cloudinary.uploader.upload(file, (result) => {

@@ -2,7 +2,6 @@ const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
 
-//check người dùng vừa login
 const authMiddleware = asyncHandler(async(req,res,next)=>{
     let token;
     if (req?.headers?.authorization?.startsWith('Bearer')){    
@@ -22,7 +21,6 @@ const authMiddleware = asyncHandler(async(req,res,next)=>{
     }
 })
 
-//check admin
 const isAdmin = asyncHandler(async(req,res,next)=>{
     const {email} = req.user;
     const adminUser = await User.findOne({email});
@@ -33,7 +31,5 @@ const isAdmin = asyncHandler(async(req,res,next)=>{
         next();
     }
 })
-
-
 
 module.exports = {authMiddleware, isAdmin,};

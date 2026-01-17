@@ -1,82 +1,88 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt')
-var ObjectId = mongoose.Schema.ObjectId;
-const crypto = require('crypto')
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
+const { Schema } = mongoose;
 
-var userSchema = new mongoose.Schema({
-    firstname:{
-        type:String,
-        required:true,
+const userSchema = new Schema(
+  {
+    firstName: {
+      type: String,
+      required: true,
+      trim: true
     },
-    lastname:{
-        type:String,
-        required:true,
+    lastName: {
+      type: String,
+      required: true,
+      trim: true
     },
-    email:{
-        type:String,
-        required:true,
-        unique:true,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true
     },
-    mobile:{
-        type:String,
-        required:true,
-        unique:true,
+    mobile: {
+      type: String,
+      required: true,
+      unique: true
     },
-    password:{
-        type:String,
-        required:true,
+    password: {
+      type: String,
+      required: true,
+      select: false
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user'
     },
     isBlocked: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false
     },
-    role:{                                    
-        type: String,
-        default: 'user'
-    },
-    cart: {
-        type: Array,
-        default: []
-    },
-    address: {
-        type: ObjectId, 
-        ref: 'Address'
-    },
-    wishlist: {
-        type: [ObjectId],
-        ref: 'Product'
-    },
+    wishlist: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Product'
+    }],
+    addresses: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Address'
+    }],
     refreshToken: {
-        type: String
+      type: String,
+      select: false
     },
-    passWordChangedAt: Date,
-    passWordResetToken: String,
-    passWordResetExpires: Date
-},
-{
-    timestamps: true,  
+    passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date
+  },
+  { timestamps: true }
+);
+
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
-userSchema.pre('save', async function(next){
-    const salt = await bcrypt.genSaltSync(10); 
-    this.password = await bcrypt.hash(this.password,salt)
-})
+userSchema.methods.isPasswordMatched = function (enteredPassword) {
+  return bcrypt.compare(enteredPassword, this.password);
+};
 
-userSchema.methods.isPasswordMatched = async function(enteredPassword){ 
-    return await bcrypt.compare(enteredPassword,this.password)
-}
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
 
-userSchema.methods.createResetPassWorkToken = async function(enteredPassword){ 
-    const resetToken = crypto.randomBytes(32).toString('hex');  
-    this.passWordResetToken = crypto
+  this.passwordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)
-    .digest('hex')
-    this.passWordResetExpires = Date.now()+5*60*1000;
-    return resetToken;
-}
+    .digest('hex');
 
+  this.passwordResetExpires = Date.now() + 5 * 60 * 1000;
+
+  return resetToken;
+};
 
 module.exports = mongoose.model('User', userSchema);
-

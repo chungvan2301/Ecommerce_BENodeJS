@@ -2,7 +2,6 @@ const Branch = require('../models/branchModel');
 const asyncHandler = require('express-async-handler');
 const validateIDMongo = require('../validatedIDmongoDB/validatedID');
 
-//Create Branch
 const createBranch = asyncHandler(async(req,res)=>{
     try {
         const newBranch = await Branch.create(req.body)
@@ -12,7 +11,6 @@ const createBranch = asyncHandler(async(req,res)=>{
     }
 })
 
-//Update Branch
 const updateBranch = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id);
@@ -24,7 +22,6 @@ const updateBranch = asyncHandler(async(req,res)=>{
     }
 })
 
-//Delete Branch
 const deleteBranch = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id);
@@ -36,7 +33,6 @@ const deleteBranch = asyncHandler(async(req,res)=>{
     }
 })
 
-//Get all Branch
 const getAllBranch = asyncHandler(async(req,res)=>{
     try {
         const allBranch = await Branch.find()
@@ -46,7 +42,6 @@ const getAllBranch = asyncHandler(async(req,res)=>{
     }
 })
 
-//Get a Branch
 const getBranch = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id);
@@ -57,7 +52,5 @@ const getBranch = asyncHandler(async(req,res)=>{
         throw new Error ('Error')
     }
 })
-
-
 
 module.exports = {createBranch, updateBranch, deleteBranch, getAllBranch, getBranch}

@@ -2,7 +2,6 @@ const Coupon = require('../models/couponModel');
 const asyncHandler = require('express-async-handler');
 const validateIDMongo = require('../validatedIDmongoDB/validatedID');
 
-//Create coupon
 const createCoupon = asyncHandler(async(req,res)=>{
     try {
         const newCoupon = await Coupon.create(req.body);
@@ -12,7 +11,6 @@ const createCoupon = asyncHandler(async(req,res)=>{
     }
 })
 
-//Update coupon
 const updateCoupon = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id)
@@ -24,7 +22,6 @@ const updateCoupon = asyncHandler(async(req,res)=>{
     }
 })
 
-//Delete coupon
 const deleteCoupon = asyncHandler(async(req,res)=>{
     const {id} = req.params;
     validateIDMongo(id)
@@ -36,7 +33,6 @@ const deleteCoupon = asyncHandler(async(req,res)=>{
     }
 })
 
-//Get all coupon
 const getAllCoupon = asyncHandler(async(req,res)=>{
     try {
         let allCoupon = Coupon.find();
@@ -44,7 +40,7 @@ const getAllCoupon = asyncHandler(async(req,res)=>{
         const limit = req.query.limit;
         const skip = (page-1)*limit;
         if(req.query.page){
-            const couponCount = await Coupon.countDocuments();                //tổng số coupon
+            const couponCount = await Coupon.countDocuments();
             if(skip>=couponCount) {res.json('Page not exist')}
             else {
                 allCoupon = allCoupon.skip(2).limit(4)
@@ -58,11 +54,5 @@ const getAllCoupon = asyncHandler(async(req,res)=>{
         throw new Error ('Error')
     }
 })
-
-
-
-
-
-
 
 module.exports ={createCoupon, updateCoupon, deleteCoupon, getAllCoupon}

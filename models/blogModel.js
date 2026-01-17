@@ -1,6 +1,5 @@
-const mongoose = require('mongoose'); // Erase if already required
+const mongoose = require('mongoose');
 var ObjectId = mongoose.Schema.ObjectId; 
-// Declare the Schema of the Mongo model
 var blogSchema = new mongoose.Schema({
     title:{
         type:String,
@@ -14,7 +13,7 @@ var blogSchema = new mongoose.Schema({
         type:String,
         required:true,
     },
-    countView:{                             //số lượt xem
+    countView:{                             
         type:Number,
         default:0,
     },
@@ -52,5 +51,4 @@ var blogSchema = new mongoose.Schema({
     timestamps: true
 });
 
-//Export the model
 module.exports = mongoose.model('Blog', blogSchema);
